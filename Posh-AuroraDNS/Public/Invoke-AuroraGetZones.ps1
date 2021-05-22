@@ -16,11 +16,11 @@ function Invoke-AuroraGetZones {
     PS C:\>$zones = Invoke-AuroraGetZones @auroraAuthorization
 .NOTES
     Function Name : Invoke-AuroraGetZones
-    Version       : v2021.0522.1915
+    Version       : v2021.0522.1930
     Author        : John Billekens
     Requires      : API Account => https://cp.pcextreme.nl/auroradns/users
 .LINK
-    https://blog.j81.nl
+    https://github.com/j81blog/Posh-AuroraDNS
 #>  
     [CmdletBinding()]
     param(

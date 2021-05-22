@@ -21,11 +21,11 @@ function Invoke-AuroraDeleteRecord {
     Delete a record with the ID 'vvvvvvvv-wwww-xxxx-yyyy-zzzzzzzzzzzz' in zone 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
 .NOTES
     Function Name : Invoke-AuroraDeleteRecord
-    Version       : v2021.0522.1915
+    Version       : v2021.0522.1930
     Author        : John Billekens
     Requires      : API Account => https://cp.pcextreme.nl/auroradns/users
 .LINK
-    https://blog.j81.nl
+    https://github.com/j81blog/Posh-AuroraDNS
 #> 
     [CmdletBinding()]
     param(

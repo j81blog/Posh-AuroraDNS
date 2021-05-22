@@ -33,11 +33,11 @@ function Invoke-AuroraSetRecord {
     Set an existing record with new content '198.51.100.85'
 .NOTES
     Function Name : Invoke-AuroraAddRecord
-    Version       : v2021.0522.1915
+    Version       : v2021.0522.1930
     Author        : John Billekens
     Requires      : API Account => https://cp.pcextreme.nl/auroradns/users
 .LINK
-    https://blog.j81.nl
+    https://github.com/j81blog/Posh-AuroraDNS
 #> 
     [CmdletBinding()]
     param(

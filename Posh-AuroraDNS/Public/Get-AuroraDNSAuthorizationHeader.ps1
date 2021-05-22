@@ -21,11 +21,11 @@ function Get-AuroraDNSAuthorizationHeader {
     $authorizationHeader = Get-AuroraDNSAuthorizationHeader -Key XXXXXXXXXX -Secret YYYYYYYYYYYYYYYY -Method GET -Uri /zones
 .NOTES
     Function Name : Invoke-AuroraFindZone
-    Version       : v2021.0522.1915
+    Version       : v2021.0522.1930
     Author        : John Billekens
     Requires      : API Account => https://cp.pcextreme.nl/auroradns/users
 .LINK
-    https://blog.j81.nl
+    https://github.com/j81blog/Posh-AuroraDNS
 #>  
     [CmdletBinding()]
     param(

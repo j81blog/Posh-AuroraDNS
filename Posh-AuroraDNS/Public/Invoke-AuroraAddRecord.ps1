@@ -34,11 +34,11 @@ function Invoke-AuroraAddRecord {
     Create an 'TXT' for the domain (no record name) and content 'v=spf1 include:_spf.google.com'
 .NOTES
     Function Name : Invoke-AuroraAddRecord
-    Version       : v2021.0522.1915
+    Version       : v2021.0522.1930
     Author        : John Billekens
     Requires      : API Account => https://cp.pcextreme.nl/auroradns/users
 .LINK
-    https://blog.j81.nl
+    https://github.com/j81blog/Posh-AuroraDNS
 #> 
     [CmdletBinding()]
     param(
