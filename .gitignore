@@ -41,8 +41,7 @@ Redists.xml
 # Visual Studio Code #
 ######################
 *.code-workspace
-.vscode
-SignScripts.ps1
+.vscode/
 
 # Docs #
 ########
