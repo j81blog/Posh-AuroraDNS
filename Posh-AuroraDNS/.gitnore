@@ -42,6 +42,7 @@ Redists.xml
 ######################
 *.code-workspace
 .vscode
+SignScripts.ps1
 
 # Docs #
 ########
