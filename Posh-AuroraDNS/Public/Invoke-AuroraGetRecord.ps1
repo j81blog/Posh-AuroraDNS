@@ -31,7 +31,7 @@ function Invoke-AuroraGetRecord {
     Get record with ID 'vvvvvvvv-wwww-xxxx-yyyy-zzzzzzzzzzzz' in zone 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
 .NOTES
     Function Name : Invoke-AuroraGetRecord
-    Version       : v2021.0529.1215
+    Version       : v2021.0530.1330
     Author        : John Billekens
     Requires      : API Account => https://cp.pcextreme.nl/auroradns/users
 .LINK
@@ -57,6 +57,9 @@ function Invoke-AuroraGetRecord {
         [Parameter(ParameterSetName = 'Named')]
         [String]$RecordName,
         
+        [Parameter(ParameterSetName = 'Named')]
+        [String]$Co,
+        
         [Parameter()]
         [String]$Api = 'api.auroradns.eu',
         
@@ -73,6 +76,7 @@ function Invoke-AuroraGetRecord {
     } else {
         $Uri = '/zones/{0}/records' -f $ZoneID.Guid
     }
+    Write-Verbose "$Uri"
     $ApiUrl = 'https://{0}{1}' -f $Api, $Uri
     $AuthorizationHeader = Get-AuroraDNSAuthorizationHeader -Key $Key -Secret $Secret -Method $Method -Uri $Uri
     $restError = ''
@@ -93,25 +97,20 @@ function Invoke-AuroraGetRecord {
         } else {
             Throw ($OutError.errormsg)
         }
-    }
-    if ([String]::IsNullOrEmpty($($result.id))) {
+    } 
+    if ( ($result.Count -gt 0) -and ($null -ne $result[0].id) -and (-not [String]::IsNullOrEmpty($($result[0].id))) ) {
+        Write-Output $result
+    } else {
         Write-Debug "The function generated no data"
         Write-Output $null
-    } else {
-        Write-Output $result
     }
 }
-
-
-
-
-
 
 # SIG # Begin signature block
 # MIIkrQYJKoZIhvcNAQcCoIIknjCCJJoCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBnCWcPY1/BXcwv
-# nHXnNw5Rm5BV+mUMidD7+XeshprvBKCCHnAwggTzMIID26ADAgECAhAsJ03zZBC0
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD2VSUTOkwlzN/S
+# f3uXNqwCJRD5fInr7Q1R5iRPf/9eyKCCHnAwggTzMIID26ADAgECAhAsJ03zZBC0
 # i/247uUvWN5TMA0GCSqGSIb3DQEBCwUAMHwxCzAJBgNVBAYTAkdCMRswGQYDVQQI
 # ExJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcTB1NhbGZvcmQxGDAWBgNVBAoT
 # D1NlY3RpZ28gTGltaXRlZDEkMCIGA1UEAxMbU2VjdGlnbyBSU0EgQ29kZSBTaWdu
@@ -279,29 +278,29 @@ function Invoke-AuroraGetRecord {
 # MSQwIgYDVQQDExtTZWN0aWdvIFJTQSBDb2RlIFNpZ25pbmcgQ0ECECwnTfNkELSL
 # /bju5S9Y3lMwDQYJYIZIAWUDBAIBBQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAA
 # oQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4w
-# DAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQxIgQg2HmYQMLqlSAmSVKHtMuHsbHu
-# AU5Hi1WXLzAEp+igVXUwDQYJKoZIhvcNAQEBBQAEggEAeFKeLT7ZYCZ4H2u3Dks0
-# +Y3y7LW/9Jh+q69xQaFIjCjhXFFycIxkin5Z9aodZuSxaQYnj51MPcs0ZjQCJts2
-# j5DkcAiOnYbaxlfEnoPAlJDltF05fPZXNxACxFP7r0+exxjO/XEfzqf0Sr7anOBU
-# zrbQfoDEqiEa4CCj0ryvq2L+AlPsDwm1ffBoHpobzxF1UPUYPTHi/mIOjgjL2v3s
-# OEahwXADSKOj/Lk01Bico3qxmdKSM4HTClc6OFe53E/Si6XRcphLoYA+IaPUBeSu
-# 8e+6mi/+EJEE4pzhPzyreqxxKvb8VmtdzKIq14x7GajH19OXoY1CeXp6tsyO0jYU
-# a6GCA0wwggNIBgkqhkiG9w0BCQYxggM5MIIDNQIBATCBkjB9MQswCQYDVQQGEwJH
+# DAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQxIgQg61DdJiRDY9BRgtNYtyp+VrXx
+# GWzWI5mZHRf5nfbgIvwwDQYJKoZIhvcNAQEBBQAEggEALTEqn+cfE0FE4WhIvTw8
+# Lfr99JQSbubtDJuf+0jEUN4v9wZ6sf+s64uAVh+t6Jo6OfDALs1GQix6tG9pohan
+# TE6giDiDIryrd/O1Uk9dk4xZ8naEj/oUqLcyy/HJq59D9U7ayTC/asE+HshvQ+6A
+# oiPGShbsQEAibbCsqRYECigBmSbsSK+0MtPwBLd1bNY/y4v3R+xagdL9wPfG3+Lt
+# xrqQ6WO8v0kj/+E61iXu19lO7H+e4VFFtxkk4nDJzDCAk0zS+BeVIAZTRVmzhVI6
+# 1UBs7PcsN/Q9YzimWPawfcpMxLfYjzTsGteS5Knf9iovHH2w8nTWfZaevs6ExpTr
+# CqGCA0wwggNIBgkqhkiG9w0BCQYxggM5MIIDNQIBATCBkjB9MQswCQYDVQQGEwJH
 # QjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHEwdTYWxmb3Jk
 # MRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxJTAjBgNVBAMTHFNlY3RpZ28gUlNB
 # IFRpbWUgU3RhbXBpbmcgQ0ECEQCMd6AAj/TRsMY9nzpIg41rMA0GCWCGSAFlAwQC
 # AgUAoHkwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcN
-# MjEwNTI5MTIyMzUzWjA/BgkqhkiG9w0BCQQxMgQwQ58myPUJwNIO5h+acJcBoHOu
-# z7nRYf6Tu1HyfZ/CzQwOKZ3vX5Q1Qpd9W0KZSQiEMA0GCSqGSIb3DQEBAQUABIIC
-# ACGBkxa1IDG1nx2Sxs77WZHfi6Cg+GLAS0EMswIDxhlp7EgEAFU35/NZ9mQcjex/
-# lyOQiP9f/n/kc/EUIM58nhhEToX39eaH3rMXstCfqDOMtYD0JWtvC2uO6yYzHm5H
-# cwEaxrnIbz3o7rUTdoak9x6Yc5zwLlsxgG3TH9TLmrh2sq6CU14fV3kNYqD4X7SL
-# gqnCEprRULiVQiSeLjq43iq0YIDiJGQZwdQQLHUlbKbNy/6AChy88DioorVGbGHC
-# NYezMKDdlFZxq8yuMgeD482pnP5BOytR5FX9vGA52E6DZn1jKTjRF8n0pCamWBcp
-# SRmyt/T2LDXOiozmi5HfMSHm1rDB0oefXZT5bKR2P/OV8PovMASVMG1QOLbOjpJX
-# zd0Mra7/SfT8DoSqvlsFYHIa25lCHzQDorVIvESlDuRBM+o/kIIoBcuQfy/XGPR1
-# gj8h39j2ShD1q/ANKMtalnqPhcp254iZ+8+4z5jWA+/Py0+QcLqY5309fUt1ZosH
-# c2j89p8O+eeXnyNNk6H9qIL1VPmsNgOopHtbApMwfVPPq9su6SuMLoyWRDimH+Xh
-# uOMHzhIpTUvrtU4/q2qBOwKGUa/1QmFDyu+mrcGS0Dba2djh/ZtudI4Etnuisyuv
-# cLD0sUuE5tNgzcMjmogAztRlaTbvn8mow1dVn+NQ7KsS
+# MjEwNTMwMTE0MzUwWjA/BgkqhkiG9w0BCQQxMgQwUTgqW5QrombsVrJXuzQ7hmcM
+# CaVD3PuAk8mLIdErVqZlgJ8Tr4bUpFUFFH82GR3yMA0GCSqGSIb3DQEBAQUABIIC
+# AGuTem3as+94bQ2k1Hxn8HJc2sVcem73FylIGHcgIqGRrEMC+tQzZkNVcEAkYOjh
+# NXiTB6iFwstDFDrFZYvqX4QSuASjjxgDyqcOGrHkHcHCFmHnSHgwZOHX/TWvnrk6
+# dZAkwXDUAGFAaSoJhD25ioj29sWKwPm+ZmmhRzoDxmXDSwUEGJqzMluVpKNtQf4S
+# b0wE6Tu9FpvzUmQq+NUP7flsHYF6eZ6smJcqaYCVR0zIGQMJc5S6HPTcMotivhjj
+# qJuL6xramZedTbYbWeYKrooRZs3k6ZcRFn8t1nhG331EyuQI1RJPV4nztM02VIQ0
+# Zogv1cYzmdn/0sHXIL6gIZPap++l2dp1eeU/L0n9kCT7RXP1b+k6x4R4jZ4if1aH
+# c5E7JueX0vXJevEpLfpF/W/1xkOkcDIgP2gwgrAERM7IafmAVgDSaHAx2uc0KJfK
+# spg+HIu4LuKkHF3Rj00hXiLoebPzYDhebDIismQVpUndmg/ImFHYI276sC+7YfVx
+# 3wgAglJupNarEZzMzP02wz+5Ms19S82vX8hSvy8XxCjLA8cYJs3oq1SsQ43GPW5X
+# XmSrehrC1JFt7+rpty3QOhBVXCsHUX3Dg5idYapipWvdR3yH3Rp/7kaQkW0tz5LS
+# cOTz69kRTx/lzKxIU8Gf0EnHqJHCz+jXHl9+dRZ4yk6i
 # SIG # End signature block

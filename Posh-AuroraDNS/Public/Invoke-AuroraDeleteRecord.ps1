@@ -21,7 +21,7 @@ function Invoke-AuroraDeleteRecord {
     Delete a record with the ID 'vvvvvvvv-wwww-xxxx-yyyy-zzzzzzzzzzzz' in zone 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
 .NOTES
     Function Name : Invoke-AuroraDeleteRecord
-    Version       : v2021.0529.1215
+    Version       : v2021.0530.1330
     Author        : John Billekens
     Requires      : API Account => https://cp.pcextreme.nl/auroradns/users
 .LINK
@@ -66,7 +66,7 @@ function Invoke-AuroraDeleteRecord {
         Write-Debug $($OutError | Out-String)
         Throw ($OutError.errormsg)
     }
-    if ([String]::IsNullOrEmpty($($result.id))) {
+    if ([String]::IsNullOrWhiteSpace($($result.id))) {
         Write-Debug "The function generated no data"
         Write-Output $null
     } else {
@@ -77,8 +77,8 @@ function Invoke-AuroraDeleteRecord {
 # SIG # Begin signature block
 # MIIkrQYJKoZIhvcNAQcCoIIknjCCJJoCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB5oLvCTDdweGrp
-# bYLqbL+aFzZRhTcciSRqZkil32egSKCCHnAwggTzMIID26ADAgECAhAsJ03zZBC0
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAECebw23ywANrX
+# 9s+cPPjr03DzMimkjEjwI/5HdKguyaCCHnAwggTzMIID26ADAgECAhAsJ03zZBC0
 # i/247uUvWN5TMA0GCSqGSIb3DQEBCwUAMHwxCzAJBgNVBAYTAkdCMRswGQYDVQQI
 # ExJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcTB1NhbGZvcmQxGDAWBgNVBAoT
 # D1NlY3RpZ28gTGltaXRlZDEkMCIGA1UEAxMbU2VjdGlnbyBSU0EgQ29kZSBTaWdu
@@ -246,29 +246,29 @@ function Invoke-AuroraDeleteRecord {
 # MSQwIgYDVQQDExtTZWN0aWdvIFJTQSBDb2RlIFNpZ25pbmcgQ0ECECwnTfNkELSL
 # /bju5S9Y3lMwDQYJYIZIAWUDBAIBBQCggYQwGAYKKwYBBAGCNwIBDDEKMAigAoAA
 # oQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEEAYI3AgELMQ4w
-# DAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQxIgQg8GSy3rXQSNp2+2BDeCMZSDyN
-# P9brFy77HdX6vqcshL8wDQYJKoZIhvcNAQEBBQAEggEAaPn9MCeCXNcPDsrVeLN3
-# DogLhb1B4AX/poByb2Q00mNiB0+yzyuO9GD+FpFllee9UuO3dxf28h+eT7AX0jbl
-# RCorBfwpBHTEUsSj4W8kxXO79g40cZ03m/+by8vW8SM475bdvMXeJ9OImWTFomXH
-# yuzUASG+/CynnJc1VGU00fMlo6gfCNm72840vs+mnSKCmBEMmvYe+8thdFRfshiF
-# egbcp/OWIW6VK77ezPmfI+p0qlFeUP10+n5K8QM0do6U9uVcvfUwyKr+TNK/ylxj
-# OQ2jnSN+6zpDoqouMruKbwMJ2MZMPp5xG5y9QFgnDbdB1MSKB3T7b7MPqnbclj/T
-# eKGCA0wwggNIBgkqhkiG9w0BCQYxggM5MIIDNQIBATCBkjB9MQswCQYDVQQGEwJH
+# DAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQxIgQgr1s9X6PZevn8hmq86l9XLAUP
+# l5aKcRdx4H91lueKR6swDQYJKoZIhvcNAQEBBQAEggEANFDWnXsVuFXTL6Fwezrt
+# yERl+ML2tWzQnP7VL24TntcTtXQrDudBSnCqcvqUj0gA4FenGsfXt6xZ5DGlPIKm
+# JRLznkgiGgYC9cmSfusX/1hAkPf8xSKrKBX4oSktVCSxLIpQEglhTK5FI31VRU8w
+# kOmx6M/DXvwed7rpc3RDfRSp/UnXUk9opdSViDOVcJV9jAeiSM2hdyiYwb1oTs53
+# P5BrSxx+p+iZeF5y6IlNQZWHh6MmeK2aYxR2+TtTr4/gWFdKiVHKaQ2JWjtCmu6o
+# QYkEh8jXhpHS5a7ODpPPNcrYdqz7Dp5/L4/mArR51tDktBWY1LiXy1Ju+aCA+UzT
+# 96GCA0wwggNIBgkqhkiG9w0BCQYxggM5MIIDNQIBATCBkjB9MQswCQYDVQQGEwJH
 # QjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHEwdTYWxmb3Jk
 # MRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxJTAjBgNVBAMTHFNlY3RpZ28gUlNB
 # IFRpbWUgU3RhbXBpbmcgQ0ECEQCMd6AAj/TRsMY9nzpIg41rMA0GCWCGSAFlAwQC
 # AgUAoHkwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcN
-# MjEwNTI5MTIyNDU2WjA/BgkqhkiG9w0BCQQxMgQwTHwa/zPvOBY7q5vDeKly4YZk
-# 6vWZeTr6Mp2D8w1iidySFJbXr63zsmQj9Ow+UihlMA0GCSqGSIb3DQEBAQUABIIC
-# AFokb3dAg3iAucrhnZQ9Z1ggva9lwBXaxQNWNIJeBuEeT/ex4ekOXVMGF0nNV6It
-# JrU+uxgGp/a//3JOoY5I6Zt9kwpPAO1wnG+afjGKN6Y1JV9rVd0O7kc1SrwUvcRM
-# 58S7xgpu58ObJfaJovSLuqPLTq6u1LyT9syglJ5XF4yBYVKCYTOvU1tXVGKuSNA/
-# 69P9DzQ+/lFTUuKAHSb0S9fXHTCHiQj6WT7P8ADQBj+p9jmrQULVvtjq7LnRIpTc
-# 6kySlF7zSbUgS7ksidTPukdEcZD3LKBnwnLW7VuQ5u5DKeB4A2W9OIbaOu+sdh5W
-# VeTCXJMrZOm0vkY0lOnYRSiTpREVLePHb9KQ6My/V4b9GNa/fqovHzGqX0b/i8yj
-# BzFlYT+e0Jx91/NPFovGERLjetmxRq1j0Q4SjSuKYTsDrXvE53HEtTk93lnYgsiu
-# MQTLl2IvTrGae/Y+tYRQFeO5V7X28nsuGZjzYEubvVt0QYxj7dQHEm7KeAnbIFkI
-# ORqUL6mA2LT9W9YrtlNvgHoOnBstQQTO+gWflljNoIcBYpIr4zWlk7cQdxrxoht3
-# Zju3VIJNSkLJwST5Q+EctCwTd7OcuXwEv+uJyYtOGIJAZYGu4N+Gx846nkDMxvqj
-# LwFC4vtI6BV/iEmjR8wBSu8kLFhylQbUO5h8uUhGG2WA
+# MjEwNTMwMTE0MzQ3WjA/BgkqhkiG9w0BCQQxMgQwNsd0FW27KaJ/Rnkx7p7oIFPO
+# j3CdWTkMgBrDyl7b1A0fhUSg/ye1IDUzZ8OI795KMA0GCSqGSIb3DQEBAQUABIIC
+# ABfeoBtspeyCtKyuZfw7prVWUVTZ2InBTDDb4fzUlu52DAjPAuwelZ+B/3VavbBG
+# gny0wvu0Yuq8aHqC0DM9JAwMipFMDzbrzZ3uq+e0B7js0jhGx/GR+ce/NFkotxEW
+# bq4xNUu6Qx79lQ3MUusFZaEOOFn/ZbeI+4CjD6S8M7sNPqiIi9gn7BmDaF3MdnqA
+# RAJSF0jme6RG6uMGM6nKCSMg548HTL9LKiJYoD9NZHDk+/WOY/o8YRTtjvby/8Qo
+# zGRPl6CHCwxF7lEBK5OSrq0EGA+ntGAneS877uGhPdvhRzVrASVw7OESo5gU5Pg3
+# fI8+wtg0a51SSuSGPy9NXo5cV5Lj5jUP1JDFJ/BPnV0kOVU4f/wlWhSBnBh4OoqB
+# csWoOAqH/OIlTNhsT488fIwxBkTxNkRpGN4t+2wN+uLwA5gykhPyTvqn/HiCC4Nd
+# IcAGNmtvlVQvYc6/vhiL1Z8RggZgAKJFTVjHdnFs7Gbe6Upl5PBSt8Of1M01mupQ
+# xp61Snk4pBWKKwU/Cqd99EyLYpvpxfOBDb4y8yH+NxHNVebyQNSo6qAV4Mn5qg4q
+# zxYDmfEhqwh31pvOQo+0uG0muOl4y7lea/DVOJZpxdXrMkJCoUohfGQphjfuXaLo
+# Sl2t9WpGPaWfQRTFt/i7XaB478WvWBq4CaDiYl0TUMLR
 # SIG # End signature block

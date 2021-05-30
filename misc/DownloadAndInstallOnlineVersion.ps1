@@ -1,75 +1,75 @@
-function Invoke-AuroraGetZones {
-    <#
-.SYNOPSIS
-    Get Aurora DNS Zones
-.DESCRIPTION
-    Get Aurora DNS Zones
-.PARAMETER Key
-    The Aurora DNS API key for your account.
-.PARAMETER Secret
-    The Aurora DNS API secret key for your account.
-.PARAMETER Api
-    The Aurora DNS API hostname.
-    Default (if not specified): api.auroradns.eu
-.EXAMPLE
-    $auroraAuthorization = @{ Api='api.auroradns.eu'; Key='XXXXXXXXXX'; Secret='YYYYYYYYYYYYYYYY' }
-    PS C:\>$zones = Invoke-AuroraGetZones @auroraAuthorization
-.NOTES
-    Function Name : Invoke-AuroraGetZones
-    Version       : v2021.0530.1330
-    Author        : John Billekens
-    Requires      : API Account => https://cp.pcextreme.nl/auroradns/users
-.LINK
-    https://github.com/j81blog/Posh-AuroraDNS
-#>  
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [String]$Key,
-        
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [String]$Secret,
+#Requires -Version 5.1
 
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [String]$Api = 'api.auroradns.eu',
-        
-        [Parameter(ValueFromRemainingArguments, DontShow)]
-        $ExtraParams
-    )
-    $UseBasic = @{ }
-    if ('UseBasicParsing' -in (Get-Command Invoke-RestMethod).Parameters.Keys) {
-        $UseBasic.UseBasicParsing = $true
-    }
-    $Method = 'GET'
-    $Uri = '/zones'
-    $ApiUrl = 'https://{0}{1}' -f $Api, $Uri
-    $AuthorizationHeader = Get-AuroraDNSAuthorizationHeader -Key $Key -Secret $Secret -Method $Method -Uri $Uri
-    $restError = ''
-    Write-Debug "$Method URI: `"$ApiUrl`""
-    try {
-        [Object[]]$result = Invoke-RestMethod -Uri $ApiUrl -Headers $AuthorizationHeader -Method $Method -ErrorVariable restError @UseBasic
-    } catch {
-        $result = $null
-        $OutError = $restError[0].Message | ConvertFrom-Json -ErrorAction SilentlyContinue
-        Write-Debug $($OutError | Out-String)
-        Throw ($OutError.errormsg)
-    }
-    if ( ($result.Count -gt 0) -and ($null -ne $result[0].id) -and (-not [String]::IsNullOrEmpty($($result[0].id))) ) {
-        Write-Output $result
+#OriginalSource https://github.com/rmbolger/Posh-ACME/blob/master/instdev.ps1
+
+$ModuleName = "Posh-AuroraDNS"
+# set the user module path based on edition and platform
+if ('PSEdition' -notin $PSVersionTable.Keys -or $PSVersionTable.PSEdition -eq 'Desktop') {
+    $installpath = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'WindowsPowerShell\Modules'
+} else {
+    if ($IsWindows) {
+        $installpath = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'PowerShell\Modules'
     } else {
-        Write-Debug "The function generated no data"
-        Write-Output $null
+        $installpath = Join-Path ([Environment]::GetFolderPath('MyDocuments')) '.local/share/powershell/Modules'
     }
 }
+
+# deal with execution policy on Windows
+if (('PSEdition' -notin $PSVersionTable.Keys -or $PSVersionTable.PSEdition -eq 'Desktop' -or $IsWindows) -and (Get-ExecutionPolicy) -notin 'Unrestricted','RemoteSigned','Bypass') {
+    Write-Verbose "Setting user execution policy to RemoteSigned"
+    Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+}
+
+# create user-specific modules folder if it doesn't exist
+New-Item -ItemType Directory -Force -Path $installpath | out-null
+
+if ([String]::IsNullOrWhiteSpace($PSScriptRoot)) {
+
+    # GitHub now requires TLS 1.2
+    # https://blog.github.com/2018-02-23-weak-cryptographic-standards-removed/
+    $currentMaxTls = [Math]::Max([Net.ServicePointManager]::SecurityProtocol.value__,[Net.SecurityProtocolType]::Tls.value__)
+    $newTlsTypes = [enum]::GetValues('Net.SecurityProtocolType') | Where-Object { $_ -gt $currentMaxTls }
+    $newTlsTypes | ForEach-Object {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor $_
+    }
+
+    # likely running from online, so download
+    $url = "https://github.com/j81blog/$ModuleName/archive/main.zip"
+    Write-Verbose "Downloading latest version of $ModuleName from $url"
+    $file = Join-Path ([system.io.path]::GetTempPath()) "$($ModuleName).zip"
+    $webclient = New-Object System.Net.WebClient
+    try {
+        $webclient.DownloadFile($url,$file)
+        Unblock-File -Path $file
+    } catch { throw }
+    Write-Verbose "File saved to $file"
+
+    # extract the zip
+    Write-Verbose "Decompressing the Zip file to $($installpath)"
+    Expand-Archive $file -DestinationPath $installpath
+
+    Write-Verbose "Removing any old copy"
+    Remove-Item "$installpath\$ModuleName" -Recurse -Force -ErrorAction Ignore
+    Write-Verbose "Renaming folder"
+    Copy-Item "$installpath\$($ModuleName)-main\$($ModuleName)" $installpath -Recurse -Force -ErrorAction Continue
+    Remove-Item "$installpath\$($ModuleName)-main" -recurse -confirm:$false
+    Import-Module -Name $ModuleName -Force
+} else {
+    # running locally
+    Remove-Item "$installpath\$ModuleName" -Recurse -Force -ErrorAction Ignore
+    Copy-Item "$PSScriptRoot\$ModuleName" $installpath -Recurse -Force -ErrorAction Continue
+    # force re-load the module (assuming you're editing locally and want to see changes)
+    Import-Module -Name $ModuleName -Force
+}
+Write-Verbose 'Module has been installed'
+
+Get-Command -Module $ModuleName
 
 # SIG # Begin signature block
 # MIITYgYJKoZIhvcNAQcCoIITUzCCE08CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCDZ9eSAmAdnmdO
-# 77o0SZApNk9iAQezNAC0sHn/H20uwKCCEHUwggTzMIID26ADAgECAhAsJ03zZBC0
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB7RaKJ/facraiQ
+# aKDQ5scdMOBsWZj/a8YekYB/uA6EpqCCEHUwggTzMIID26ADAgECAhAsJ03zZBC0
 # i/247uUvWN5TMA0GCSqGSIb3DQEBCwUAMHwxCzAJBgNVBAYTAkdCMRswGQYDVQQI
 # ExJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcTB1NhbGZvcmQxGDAWBgNVBAoT
 # D1NlY3RpZ28gTGltaXRlZDEkMCIGA1UEAxMbU2VjdGlnbyBSU0EgQ29kZSBTaWdu
@@ -163,11 +163,11 @@ function Invoke-AuroraGetZones {
 # IFNpZ25pbmcgQ0ECECwnTfNkELSL/bju5S9Y3lMwDQYJYIZIAWUDBAIBBQCggYQw
 # GAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGC
 # NwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQx
-# IgQgMR0BgJFfDyQmfm6v82UiFxRKemYxx9RgHu37KdU664EwDQYJKoZIhvcNAQEB
-# BQAEggEAWmdWgH/rWyFygNjnGsxleTS8aTsQ86T0cCD+Ss1z7Zeo9xAmguTH1825
-# Zs8wWwlO6wTnnS1NvJbgEpA95/pabT3N4PZRYiGa72zc8c3BscWrMsf/PFAxhNWO
-# XWHTCHximZhE+6ObTfqX033rfX+OQItT801rO/z5bqUdVgtA7+3WD8nbnKeAKe9M
-# Ml9dGgOPzKZkzA79RmRSjG8UoJy/++LLFeytpz7zcJvLcg0YfEjKBAyxPNFic4Bb
-# IUfsLA89zBmOa+ksvHCkuDLvaovDUBTdRWpFeBZNYnOO3LGSTF8z+6ktPXyvafwZ
-# jWqNB9X1HSJ8GfujVutPQode1zO37Q==
+# IgQgglSJ/4fyrPUoW0ToHFGzMfb3EAdHrCEz/KqytgM1JLIwDQYJKoZIhvcNAQEB
+# BQAEggEAEs1GD4i7ubDf2PfmQZ0FSoYI8iPcjlkAE4AMBp8s2DxDfGPiTbqme7Ba
+# FToKUqzJcn6QZmNkZv886AvF/kFw1uCbuldnAdx1aGE/jTwAPkjTj9JRIQp1OKdZ
+# NMdSUTFk1wWBRYyovZ/N8pDU8w9VSaVYMgom14Vmtzhh72/VqpQw2OGLXhcyRqX9
+# MDjjtpnhbguiCi4SCsxK89YkNqVbQVHyVcirbVuNDB2ZFKev7VFS3t1zS3voRq2S
+# TqzkJSdUFFAE3OECC8hqRQCNE0Vm5iQSB4/QhmNNA4U6ugoWOmL4Kf4x0xSvvZSB
+# fBdbztiJPDCVnxPAu0qCG2Tnf7iyXQ==
 # SIG # End signature block

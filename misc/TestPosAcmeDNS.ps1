@@ -1,75 +1,78 @@
-function Invoke-AuroraGetZones {
+if ($auroraAuthorization.Count -lt 3) {
+    Write-Host "Please configure `"`$auroraAuthorization `$Global:auroraAuthorization = @{ Api='api.auroradns.eu'; Key='XXXXXXXXXX'; Secret='YYYYYYYYYYYYYYYY' }`""
+    Write-Error "`$auroraAuthorization not defined"
+} else {
+    Import-Module Posh-AuroraDNS -Force
     <#
-.SYNOPSIS
-    Get Aurora DNS Zones
-.DESCRIPTION
-    Get Aurora DNS Zones
-.PARAMETER Key
-    The Aurora DNS API key for your account.
-.PARAMETER Secret
-    The Aurora DNS API secret key for your account.
-.PARAMETER Api
-    The Aurora DNS API hostname.
-    Default (if not specified): api.auroradns.eu
-.EXAMPLE
-    $auroraAuthorization = @{ Api='api.auroradns.eu'; Key='XXXXXXXXXX'; Secret='YYYYYYYYYYYYYYYY' }
-    PS C:\>$zones = Invoke-AuroraGetZones @auroraAuthorization
-.NOTES
-    Function Name : Invoke-AuroraGetZones
-    Version       : v2021.0530.1330
-    Author        : John Billekens
-    Requires      : API Account => https://cp.pcextreme.nl/auroradns/users
-.LINK
-    https://github.com/j81blog/Posh-AuroraDNS
-#>  
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [String]$Key,
-        
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [String]$Secret,
-
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [String]$Api = 'api.auroradns.eu',
-        
-        [Parameter(ValueFromRemainingArguments, DontShow)]
-        $ExtraParams
-    )
-    $UseBasic = @{ }
-    if ('UseBasicParsing' -in (Get-Command Invoke-RestMethod).Parameters.Keys) {
-        $UseBasic.UseBasicParsing = $true
-    }
-    $Method = 'GET'
-    $Uri = '/zones'
-    $ApiUrl = 'https://{0}{1}' -f $Api, $Uri
-    $AuthorizationHeader = Get-AuroraDNSAuthorizationHeader -Key $Key -Secret $Secret -Method $Method -Uri $Uri
-    $restError = ''
-    Write-Debug "$Method URI: `"$ApiUrl`""
-    try {
-        [Object[]]$result = Invoke-RestMethod -Uri $ApiUrl -Headers $AuthorizationHeader -Method $Method -ErrorVariable restError @UseBasic
-    } catch {
-        $result = $null
-        $OutError = $restError[0].Message | ConvertFrom-Json -ErrorAction SilentlyContinue
-        Write-Debug $($OutError | Out-String)
-        Throw ($OutError.errormsg)
-    }
-    if ( ($result.Count -gt 0) -and ($null -ne $result[0].id) -and (-not [String]::IsNullOrEmpty($($result[0].id))) ) {
-        Write-Output $result
+    $key = $auroraAuthorization.key
+    $secret = $auroraAuthorization.secret
+    $api = $auroraAuthorization.api
+    #>
+    
+    $zoneName = "it-framework.nl"
+    Write-Host "Zone          : $zoneName" 
+    Write-Host "Test [GET]    : " -NoNewLine
+    $zone = Invoke-AuroraFindZone -RecordName $zoneName @auroraAuthorization
+    if (($zone | Select-Object -First 1 -ExpandProperty name) -eq $zoneName) {
+        Write-Host "Success" -ForeGroundColor Green
     } else {
-        Write-Debug "The function generated no data"
-        Write-Output $null
+        Write-Host "Failed" -ForeGroundColor Red
+    }
+    
+    $Name = "PoshTest"
+    $Value = "Test Value ADD"
+    Write-Host "Record [Value : $Name [$Value]" 
+    Write-Host "Test [ADD]    : " -NoNewLine
+    $record = Invoke-AuroraAddRecord -ZoneID $zone.id -name $name -Content $Value -Type TXT @auroraAuthorization
+    if (($record | Select-Object -First 1 -ExpandProperty content) -eq $Value) {
+        Write-Host "Success" -ForeGroundColor Green
+    } else {
+        Write-Host "Failed" -ForeGroundColor Red
+    }
+    
+    $Value = "Test Value SET"
+    Write-Host "Record [Value : $Name [$Value]" 
+    Write-Host "Test [SET]    : " -NoNewLine
+    $record = Invoke-AuroraSetRecord -ZoneID $zone.id -RecordID $record.id @auroraAuthorization -Content $Value -Passthru
+    $testResult = $record | Select-Object -First 1
+    if (($testResult | Select-Object -ExpandProperty content) -eq $Value) {
+        Write-Host "Success" -ForeGroundColor Green
+    } else {
+        Write-Host "Failed" -ForeGroundColor Red
+    }
+    
+    Write-Host "Test [GET]    : " -NoNewLine
+    $record = Invoke-AuroraGetRecord -ZoneID $zone.id -RecordID $record.id @auroraAuthorization
+    if (($record | Select-Object -First 1 -ExpandProperty content) -eq $Value) {
+        Write-Host "Success" -ForeGroundColor Green
+    } else {
+        Write-Host "Failed" -ForeGroundColor Red
+    }
+    
+    Write-Host "Test [DELETE] : " -NoNewLine
+    
+    $record = Invoke-AuroraDeleteRecord -ZoneID $zone.id -RecordID $record.id @auroraAuthorization
+    try {
+        $record = Invoke-AuroraGetRecord -ZoneID $zone.id -RecordID $record.id @auroraAuthorization
+        $resultText = "Record still exists"
+        $testResult = $false
+    } catch {
+        $resultText = "Record deleted!"
+        $testResult = $true
+        
+    }
+    if ($testResult) {
+        Write-Host "Success - $resultText" -ForeGroundColor Green
+    } else {
+        Write-Host "Failed - $resultText" -ForeGroundColor Red
     }
 }
 
 # SIG # Begin signature block
 # MIITYgYJKoZIhvcNAQcCoIITUzCCE08CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCDZ9eSAmAdnmdO
-# 77o0SZApNk9iAQezNAC0sHn/H20uwKCCEHUwggTzMIID26ADAgECAhAsJ03zZBC0
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBWSDhEXR6vlyP7
+# XLjL0RDxOa+RRewkUu9ymjypkvb3EqCCEHUwggTzMIID26ADAgECAhAsJ03zZBC0
 # i/247uUvWN5TMA0GCSqGSIb3DQEBCwUAMHwxCzAJBgNVBAYTAkdCMRswGQYDVQQI
 # ExJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcTB1NhbGZvcmQxGDAWBgNVBAoT
 # D1NlY3RpZ28gTGltaXRlZDEkMCIGA1UEAxMbU2VjdGlnbyBSU0EgQ29kZSBTaWdu
@@ -163,11 +166,11 @@ function Invoke-AuroraGetZones {
 # IFNpZ25pbmcgQ0ECECwnTfNkELSL/bju5S9Y3lMwDQYJYIZIAWUDBAIBBQCggYQw
 # GAYKKwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGC
 # NwIBBDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQx
-# IgQgMR0BgJFfDyQmfm6v82UiFxRKemYxx9RgHu37KdU664EwDQYJKoZIhvcNAQEB
-# BQAEggEAWmdWgH/rWyFygNjnGsxleTS8aTsQ86T0cCD+Ss1z7Zeo9xAmguTH1825
-# Zs8wWwlO6wTnnS1NvJbgEpA95/pabT3N4PZRYiGa72zc8c3BscWrMsf/PFAxhNWO
-# XWHTCHximZhE+6ObTfqX033rfX+OQItT801rO/z5bqUdVgtA7+3WD8nbnKeAKe9M
-# Ml9dGgOPzKZkzA79RmRSjG8UoJy/++LLFeytpz7zcJvLcg0YfEjKBAyxPNFic4Bb
-# IUfsLA89zBmOa+ksvHCkuDLvaovDUBTdRWpFeBZNYnOO3LGSTF8z+6ktPXyvafwZ
-# jWqNB9X1HSJ8GfujVutPQode1zO37Q==
+# IgQg0RhfCGZ/eVUISiMUb6OBo/8ONE76kVcT+4utipnya/4wDQYJKoZIhvcNAQEB
+# BQAEggEACJh8bB1MTyOEWupoCAymj/feRiPFM9HuP+nEX+WrnOIiVPlyaKRn/3oR
+# yI+Pv/MpBeRZ6qFOt8Ivor9l5TVzRXVV9YI/ybIzD7MAEnX6m/U7dGGsTiUFlM5s
+# 0b5NJJDRWoc+UBUOjU3PaY/wU4rSXp1+LKyFx8fi+t4zNN3GaW0eDzPouQlPg0v4
+# /M4c2ydWc5EzbT3o8/n6XI93psjZFp+7LEPHXJygFHlDVB6+ZpYAMVJZZW4XmBvl
+# 79sIbEXHxhf6hWlRDN8agXZCeM1GW7zqvhj5ZDF/Qbq1EOMUU7H7XKNSw8igNn1t
+# kL6m2E7NTSR+3LNSj0WsN04vO5XoiQ==
 # SIG # End signature block
